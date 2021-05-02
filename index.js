@@ -1,7 +1,7 @@
-const action = require('action')
 const core = require('@actions/core')
 const github = require('@actions/github')
 const thr = require('throw')
+const action = require('./action')
 const { getenv, prepareDeployKey } = require('./util')
 
 const githubActor = getenv('GITHUB_ACTOR')
