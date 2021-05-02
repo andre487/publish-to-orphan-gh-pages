@@ -1623,21 +1623,28 @@ async function main () {
 
 function getInputs () {
   const debugVal = core.getInput('debug')
+  const isDebug = Boolean(debugVal) && debugVal !== 'false'
 
   const inputs = {
     srcDir: core.getInput('src_dir') || './build',
     destDir: core.getInput('dest_dir') || '.',
     branch: core.getInput('branch') || 'gh-pages',
-    deployKey: core.getInput('deploy_key') || thr(new Error('You should pass "deploy_key" input')),
+    deployKey: core.getInput('deploy_key').trim() || thr(new Error('You should pass "deploy_key" input')),
     authorName: core.getInput('author_name') || githubActor,
     authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),
-    debug: Boolean(debugVal) && debugVal !== 'false'
+    debug: isDebug
   }
 
   const { authorEmail } = inputs
   if (!/^.+@.+$/.test(authorEmail)) {
     throw new Error(`Email ${authorEmail} has an incorrect format`)
+  }
+
+  if (isDebug) {
+    const { deployKey } = inputs
+    const len = deployKey.length
+    console.log(`Deploy key (length ${len}):`, deployKey.substring(0, 32), '…', deployKey.substring(len - 32))
   }
 
   return inputs
