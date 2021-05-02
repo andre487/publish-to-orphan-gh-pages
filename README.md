@@ -12,7 +12,7 @@ Inputs:
   * `deploy_key` – Secret with deploy SSH private key for the repository. **Required**
   * `author_name` – Name of commit author. **Default:** `$GITHUB_ACTOR`
   * `author_email` – Email of commit author. **Default:** `$GITHUB_ACTOR@users.noreply.github.com`
-  * `important_files` – Paths of files that should not be removed when creating new site version. JSON array string. **Default:** `["CNAME"]`
+  * `important_files` – Files outside the build that should be in the result. JSON array string. **Default:** `["CNAME"]`
   * `debug` – Log debug messages. **Default:** `false`
 
 ```yaml
