@@ -49,11 +49,11 @@ function prepareEnv (keyFile) {
 module.exports = async function (inputs, keyFiles) {
   const env = prepareEnv(keyFiles)
   console.log(await exec(
-    'ssh-keygen', '-l', '-v',
+    env, 'ssh-keygen', '-l', '-v',
     '-f', keyFiles.private
   ))
   console.log(await exec(
-    'ssh-keygen', '-l', '-v',
+    env, 'ssh-keygen', '-l', '-v',
     '-f', keyFiles.public
   ))
 
