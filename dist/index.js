@@ -32,7 +32,7 @@ function exec (env, cmd, ...args) {
 
     proc.on('exit', code => {
       if (code) {
-        return reject(new Error(`Process exited with status ${code}`))
+        return reject(new Error(`Command failed with status ${code}: ${cmd} ${args.join(' ')}`))
       }
       resolve(out.join(''))
     })
@@ -1612,9 +1612,8 @@ async function main () {
   const inputs = getInputs()
 
   if (inputs.debug) {
-    console.log('Inputs:', JSON.stringify(inputs))
     console.log('Process argv:', JSON.stringify(process.argv))
-    console.log('Process env vars:', JSON.stringify(Object.keys(process.env).sort()))
+    console.log('Inputs:', JSON.stringify(inputs))
   }
 
   const keyFile = prepareDeployKey(inputs.deployKey)

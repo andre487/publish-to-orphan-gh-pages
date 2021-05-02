@@ -15,9 +15,8 @@ async function main () {
   const inputs = getInputs()
 
   if (inputs.debug) {
-    console.log('Inputs:', JSON.stringify(inputs))
     console.log('Process argv:', JSON.stringify(process.argv))
-    console.log('Process env vars:', JSON.stringify(Object.keys(process.env).sort()))
+    console.log('Inputs:', JSON.stringify(inputs))
   }
 
   const keyFile = prepareDeployKey(inputs.deployKey)
