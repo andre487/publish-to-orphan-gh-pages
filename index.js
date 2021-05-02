@@ -1,5 +1,4 @@
 const core = require('@actions/core')
-const github = require('@actions/github')
 const thr = require('throw')
 const action = require('./action')
 const { getenv, prepareDeployKey } = require('./util')
@@ -17,7 +16,6 @@ async function main () {
 
   if (inputs.debug) {
     console.log('Inputs:', JSON.stringify(inputs))
-    console.log('Ctx payload:', JSON.stringify(github.context.payload))
     console.log('Process argv:', JSON.stringify(process.argv))
     console.log('Process env:', JSON.stringify(process.env))
   }
@@ -27,6 +25,8 @@ async function main () {
 }
 
 function getInputs () {
+  const debugVal = core.getInput('debug')
+
   const inputs = {
     srcDir: core.getInput('src_dir') || './build',
     destDir: core.getInput('dest_dir') || '.',
@@ -35,7 +35,7 @@ function getInputs () {
     authorName: core.getInput('author_name') || githubActor,
     authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),
-    debug: core.getInput('debug')
+    debug: Boolean(debugVal) && debugVal !== 'false'
   }
 
   const { authorEmail } = inputs

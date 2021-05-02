@@ -10,8 +10,8 @@ exports.getenv = function (name, defValue) {
 
 exports.prepareDeployKey = function (deployKey) {
   const keyFile = tempFile()
-  fs.chmodSync(keyFile, 0o600)
   fs.writeFileSync(keyFile, deployKey)
+  fs.chmodSync(keyFile, 0o600)
 
   process.on('exit', () => {
     fs.unlinkSync(keyFile)
