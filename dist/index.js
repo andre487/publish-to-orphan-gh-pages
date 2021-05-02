@@ -1497,6 +1497,9 @@ exports.prepareDeployKey = function (deployPrivateKey, deployPublicKey) {
   const privateKeyFile = keyFileBase + '_id_rsa'
   const publicKeyFile = keyFileBase + '_id_rsa.pub'
 
+  console.log('Private key file:', privateKeyFile)
+  console.log('Public key file:', publicKeyFile)
+
   fs.writeFileSync(privateKeyFile, deployPrivateKey)
   fs.chmodSync(privateKeyFile, 0o600)
   fs.writeFileSync(publicKeyFile, deployPublicKey)
