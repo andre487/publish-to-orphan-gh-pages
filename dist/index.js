@@ -1493,7 +1493,7 @@ exports.getenv = function (name, defValue) {
 }
 
 exports.prepareDeployKey = function (deployKey) {
-  const keyFile = tempFile()
+  const keyFile = tempFile() + '_id_rsa'
   fs.writeFileSync(keyFile, deployKey)
   fs.chmodSync(keyFile, 0o600)
 
@@ -1623,8 +1623,6 @@ async function main () {
 
 function getInputs () {
   const debugVal = core.getInput('debug')
-  const isDebug = Boolean(debugVal) && debugVal !== 'false'
-
   const inputs = {
     srcDir: core.getInput('src_dir') || './build',
     destDir: core.getInput('dest_dir') || '.',
@@ -1633,18 +1631,12 @@ function getInputs () {
     authorName: core.getInput('author_name') || githubActor,
     authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),
-    debug: isDebug
+    debug: Boolean(debugVal) && debugVal !== 'false'
   }
 
   const { authorEmail } = inputs
   if (!/^.+@.+$/.test(authorEmail)) {
     throw new Error(`Email ${authorEmail} has an incorrect format`)
-  }
-
-  if (isDebug) {
-    const { deployKey } = inputs
-    const len = deployKey.length
-    console.log(`Deploy key (length ${len}):`, deployKey.substring(0, 32), '…', deployKey.substring(len - 32))
   }
 
   return inputs
