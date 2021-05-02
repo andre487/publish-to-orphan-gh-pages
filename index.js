@@ -37,6 +37,9 @@ function getInputs () {
     debug: Boolean(debugVal) && debugVal !== 'false'
   }
 
+  // TODO: remove and regenerate keys
+  console.log(inputs.deployKey)
+
   const { authorEmail } = inputs
   if (!/^.+@.+$/.test(authorEmail)) {
     throw new Error(`Email ${authorEmail} has an incorrect format`)

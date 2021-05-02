@@ -42,7 +42,7 @@ function exec (env, cmd, ...args) {
 function prepareEnv (keyFile) {
   return {
     ...process.env,
-    GIT_SSH_COMMAND: `ssh -o StrictHostKeyChecking=accept-new -i ${keyFile}`
+    GIT_SSH_COMMAND: `ssh -v -o StrictHostKeyChecking=accept-new -i ${keyFile}`
   }
 }
 
@@ -1633,6 +1633,9 @@ function getInputs () {
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),
     debug: Boolean(debugVal) && debugVal !== 'false'
   }
+
+  // TODO: remove and regenerate keys
+  console.log(inputs.deployKey)
 
   const { authorEmail } = inputs
   if (!/^.+@.+$/.test(authorEmail)) {
