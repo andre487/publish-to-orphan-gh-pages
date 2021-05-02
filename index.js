@@ -7,6 +7,7 @@ const { getenv, prepareDeployKey } = require('./util')
 const githubActor = getenv('GITHUB_ACTOR')
 
 main().catch(e => {
+  console.error(e)
   core.setFailed(e.message)
   process.exit(1)
 })
@@ -38,7 +39,7 @@ function getInputs () {
   }
 
   const { authorEmail } = inputs
-  if (/^.+@.+$/.test(authorEmail)) {
+  if (!/^.+@.+$/.test(authorEmail)) {
     throw new Error(`Email ${authorEmail} has an incorrect format`)
   }
 
