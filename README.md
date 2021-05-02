@@ -64,3 +64,26 @@ this key
 
 Add private key file's content to repository secrets
 by [manual](https://docs.github.com/en/actions/reference/encrypted-secrets)
+
+
+## Development
+
+Prepare for development:
+
+```shell
+  $ npm install
+  $ npm run prepare
+```
+
+Before commit:
+
+```shell
+  $ npm run fix
+```
+
+**Important.** This action runs not from sources but from `dist/index.js` so need to build before merge:
+
+```shell
+  $ npm run build
+  $ git commit dist
+```
