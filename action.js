@@ -36,7 +36,7 @@ function exec (env, cmd, ...args) {
 function prepareEnv (keyFile) {
   return {
     ...process.env,
-    GIT_SSH_COMMAND: `ssh -o StrictHostKeyChecking=accept-new -i ${keyFile.private}`
+    GIT_SSH_COMMAND: `ssh -v -o StrictHostKeyChecking=accept-new -i ${keyFile.private}`
   }
 }
 
