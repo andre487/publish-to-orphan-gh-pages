@@ -1,20 +1,28 @@
+const action = require('action')
 const core = require('@actions/core')
 const github = require('@actions/github')
 const thr = require('throw')
-const { getenv } = require('./util')
+const { getenv, prepareDeployKey } = require('./util')
 
 const githubActor = getenv('GITHUB_ACTOR')
 
-main()
+main().catch(e => {
+  core.setFailed(e.message)
+  process.exit(1)
+})
 
-function main () {
-  try {
-    const inputs = getInputs()
-    console.log('Inputs:', inputs)
-    console.log('Ctx payload:', github.context.payload)
-  } catch (error) {
-    core.setFailed(error.message)
+async function main () {
+  const inputs = getInputs()
+
+  if (inputs.debug) {
+    console.log('Inputs:', JSON.stringify(inputs))
+    console.log('Ctx payload:', JSON.stringify(github.context.payload))
+    console.log('Process argv:', JSON.stringify(process.argv))
+    console.log('Process env:', JSON.stringify(process.env))
   }
+
+  const keyFile = prepareDeployKey(inputs.deployKey)
+  await action(inputs, keyFile)
 }
 
 function getInputs () {
@@ -24,7 +32,9 @@ function getInputs () {
     branch: core.getInput('branch') || 'gh-pages',
     deployKey: core.getInput('deploy_key') || thr(new Error('You should pass "deploy_key" input')),
     authorName: core.getInput('author_name') || githubActor,
-    authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`
+    authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
+    importantFiles: core.getInput('important_files'),
+    debug: core.getInput('debug')
   }
 
   const { authorEmail } = inputs
