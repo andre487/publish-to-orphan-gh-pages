@@ -6403,7 +6403,7 @@ function getInputs () {
     deployKey: core.getInput('deploy_key') || thr(new Error('You should pass "deploy_key" input')),
     authorName: core.getInput('author_name') || githubActor,
     authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
-    importantFiles: core.getInput('important_files'),
+    importantFiles: JSON.parse(core.getInput('important_files') || '[]'),
     debug: core.getInput('debug')
   }
 
