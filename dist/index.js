@@ -67,8 +67,18 @@ module.exports = async function (inputs, keyFile) {
 
   const importantBackups = {}
 
+  console.log('Setup commit author')
+  await exec(env, 'git', 'config', 'user.email', authorEmail)
+  await exec(env, 'git', 'config', 'user.name', authorName)
+
   console.log('Create copy of site content')
   await copyDir(srcDirAbs, backupDir)
+
+  console.log('Fetching GH pages branch', branch)
+  await exec(env, 'git', 'fetch', 'origin', branch)
+
+  console.log('Checking out to branch', branch)
+  await exec(env, 'git', 'checkout', '-f', branch)
 
   console.log('Create copy of important files')
   for (const filePath of importantFiles) {
@@ -92,12 +102,6 @@ module.exports = async function (inputs, keyFile) {
   if (debug) {
     console.log('Important file copies map:', JSON.stringify(importantBackups))
   }
-
-  console.log('Fetching GH pages branch', branch)
-  await exec(env, 'git', 'fetch', 'origin', branch)
-
-  console.log('Checking out to branch', branch)
-  await exec(env, 'git', 'checkout', '-f', branch)
 
   console.log('Removing previous release content', branch)
   await exec(env, 'git', 'rm', '-rf', '*')
@@ -123,7 +127,6 @@ module.exports = async function (inputs, keyFile) {
     env,
     'git', 'commit',
     '--all', '--no-verify',
-    '--author', `${authorName} <${authorEmail}>`,
     '--message', `New GitHub pages version\n\nSource commit: ${gitSha}`
   )
 
