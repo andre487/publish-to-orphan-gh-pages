@@ -36,12 +36,12 @@ function exec (env, cmd, ...args) {
 function prepareEnv (keyFile) {
   return {
     ...process.env,
-    GIT_SSH_COMMAND: `ssh -v -o StrictHostKeyChecking=accept-new -i ${keyFile}`
+    GIT_SSH_COMMAND: `ssh -o StrictHostKeyChecking=accept-new -i ${keyFile.private}`
   }
 }
 
-module.exports = async function (inputs, keyFile) {
-  const env = prepareEnv(keyFile)
+module.exports = async function (inputs, keyFiles) {
+  const env = prepareEnv(keyFiles)
   const { branch, srcDir, destDir, debug, authorName, authorEmail, ...rest } = inputs
 
   const gitSha = getenv('GITHUB_SHA', 'unknown')

@@ -9,7 +9,8 @@ Inputs:
   * `src_dir` – The relative to the repository root path directory path with generated site content. **Required**
   * `dest_dir` – The directory to put content in GitHub pages branch. **Default:** `.`
   * `branch` – The GitHub pages branch. **Default:** `gh-pages`
-  * `deploy_key` – Secret with deploy SSH private key for the repository. **Required**
+  * `deploy_private_key` – Secret with deploy SSH private key for the repository. **Required**
+  * `deploy_public_key` – Secret with deploy SSH public key for the repository. **Required**
   * `author_name` – Name of commit author. **Default:** `$GITHUB_ACTOR`
   * `author_email` – Email of commit author. **Default:** `$GITHUB_ACTOR@users.noreply.github.com`
   * `important_files` – Files outside the build that should be in the result. JSON array string. **Default:** `["CNAME"]`
@@ -35,7 +36,8 @@ jobs:
           src_dir: ./build
           dest_dir: .
           branch: gh-pages
-          deploy_key: ${{ secrets.REPO_DEPLOY_KEY }}
+          deploy_private_key: ${{ secrets.REPO_DEPLOY_PRIVATE_KEY }}
+          deploy_public_key: ${{ secrets.REPO_DEPLOY_PUBLIC_KEY }}
           important_files: '["CNAME", "custom-file.html"]'
           debug: false
 ```
@@ -62,7 +64,7 @@ Then add public key file's content to repository deploy keys
 by [manual](https://docs.github.com/en/developers/overview/managing-deploy-keys#deploy-keys). Grant write access for
 this key
 
-Add private key file's content to repository secrets
+Add private and public key files contents to repository secrets
 by [manual](https://docs.github.com/en/actions/reference/encrypted-secrets)
 
 

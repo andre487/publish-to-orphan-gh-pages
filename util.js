@@ -8,15 +8,23 @@ exports.getenv = function (name, defValue) {
   return defValue
 }
 
-exports.prepareDeployKey = function (deployKey) {
-  const keyFile = tempFile() + '_id_rsa'
-  fs.writeFileSync(keyFile, deployKey)
-  fs.chmodSync(keyFile, 0o600)
+exports.prepareDeployKey = function (deployPrivateKey, deployPublicKey) {
+  const privateKeyFile = tempFile() + '_id_rsa'
+  const publicKeyFile = tempFile() + '_id_rsa.pub'
+
+  fs.writeFileSync(privateKeyFile, deployPrivateKey)
+  fs.chmodSync(privateKeyFile, 0o600)
+  fs.writeFileSync(publicKeyFile, deployPublicKey)
+  fs.chmodSync(publicKeyFile, 0o600)
 
   process.on('exit', () => {
-    fs.unlinkSync(keyFile)
-    console.log('Deploy key file has been removed')
+    fs.unlinkSync(privateKeyFile)
+    fs.unlinkSync(publicKeyFile)
+    console.log('Deploy key files have been removed')
   })
 
-  return keyFile
+  return {
+    private: privateKeyFile,
+    public: publicKeyFile
+  }
 }

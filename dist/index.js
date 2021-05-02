@@ -42,12 +42,12 @@ function exec (env, cmd, ...args) {
 function prepareEnv (keyFile) {
   return {
     ...process.env,
-    GIT_SSH_COMMAND: `ssh -v -o StrictHostKeyChecking=accept-new -i ${keyFile}`
+    GIT_SSH_COMMAND: `ssh -o StrictHostKeyChecking=accept-new -i ${keyFile.private}`
   }
 }
 
-module.exports = async function (inputs, keyFile) {
-  const env = prepareEnv(keyFile)
+module.exports = async function (inputs, keyFiles) {
+  const env = prepareEnv(keyFiles)
   const { branch, srcDir, destDir, debug, authorName, authorEmail, ...rest } = inputs
 
   const gitSha = getenv('GITHUB_SHA', 'unknown')
@@ -1492,17 +1492,25 @@ exports.getenv = function (name, defValue) {
   return defValue
 }
 
-exports.prepareDeployKey = function (deployKey) {
-  const keyFile = tempFile() + '_id_rsa'
-  fs.writeFileSync(keyFile, deployKey)
-  fs.chmodSync(keyFile, 0o600)
+exports.prepareDeployKey = function (deployPrivateKey, deployPublicKey) {
+  const privateKeyFile = tempFile() + '_id_rsa'
+  const publicKeyFile = tempFile() + '_id_rsa.pub'
+
+  fs.writeFileSync(privateKeyFile, deployPrivateKey)
+  fs.chmodSync(privateKeyFile, 0o600)
+  fs.writeFileSync(publicKeyFile, deployPublicKey)
+  fs.chmodSync(publicKeyFile, 0o600)
 
   process.on('exit', () => {
-    fs.unlinkSync(keyFile)
-    console.log('Deploy key file has been removed')
+    fs.unlinkSync(privateKeyFile)
+    fs.unlinkSync(publicKeyFile)
+    console.log('Deploy key files have been removed')
   })
 
-  return keyFile
+  return {
+    private: privateKeyFile,
+    public: publicKeyFile
+  }
 }
 
 
@@ -1616,8 +1624,8 @@ async function main () {
     console.log('Inputs:', JSON.stringify(inputs))
   }
 
-  const keyFile = prepareDeployKey(inputs.deployKey)
-  await action(inputs, keyFile)
+  const keyFiles = prepareDeployKey(inputs.deployPrivateKey, inputs.deployPublicKey)
+  await action(inputs, keyFiles)
 }
 
 function getInputs () {
@@ -1626,7 +1634,8 @@ function getInputs () {
     srcDir: core.getInput('src_dir') || './build',
     destDir: core.getInput('dest_dir') || '.',
     branch: core.getInput('branch') || 'gh-pages',
-    deployKey: core.getInput('deploy_key').trim() || thr(new Error('You should pass "deploy_key" input')),
+    deployPrivateKey: core.getInput('deploy_private_key') || thr(new Error('No "deploy_private_key" input')),
+    deployPublicKey: core.getInput('deploy_public_key') || thr(new Error('No "deploy_public_key" input')),
     authorName: core.getInput('author_name') || githubActor,
     authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),

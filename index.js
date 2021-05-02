@@ -19,8 +19,8 @@ async function main () {
     console.log('Inputs:', JSON.stringify(inputs))
   }
 
-  const keyFile = prepareDeployKey(inputs.deployKey)
-  await action(inputs, keyFile)
+  const keyFiles = prepareDeployKey(inputs.deployPrivateKey, inputs.deployPublicKey)
+  await action(inputs, keyFiles)
 }
 
 function getInputs () {
@@ -29,7 +29,8 @@ function getInputs () {
     srcDir: core.getInput('src_dir') || './build',
     destDir: core.getInput('dest_dir') || '.',
     branch: core.getInput('branch') || 'gh-pages',
-    deployKey: core.getInput('deploy_key').trim() || thr(new Error('You should pass "deploy_key" input')),
+    deployPrivateKey: core.getInput('deploy_private_key') || thr(new Error('No "deploy_private_key" input')),
+    deployPublicKey: core.getInput('deploy_public_key') || thr(new Error('No "deploy_public_key" input')),
     authorName: core.getInput('author_name') || githubActor,
     authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),
