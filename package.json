@@ -1,0 +1,40 @@
+{
+  "name": "publish-to-orphan-gh-pages",
+  "version": "1.0.0",
+  "description": "GitHub action for publish repository folder with static content to orphan GitHub pages branch",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky install",
+    "test": "eslint .",
+    "fix": "eslint . --fix",
+    "build": "ncc build index.js --license licenses.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andre487/publish-to-orphan-gh-pages.git"
+  },
+  "keywords": [
+    "github-actions",
+    "github-pages"
+  ],
+  "author": "andre487 <me@andre.life>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/andre487/publish-to-orphan-gh-pages/issues"
+  },
+  "homepage": "https://github.com/andre487/publish-to-orphan-gh-pages#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.7",
+    "@actions/github": "^4.0.0",
+    "throw": "^1.1.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.28.4",
+    "eslint": "^7.25.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
+    "husky": "^6.0.0"
+  }
+}

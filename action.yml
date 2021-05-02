@@ -1,0 +1,27 @@
+name: 'Publish GitHub pages'
+description: 'Publish static site to orphan GitHub pages branch'
+inputs:
+  src_dir:
+    description: 'Source dir with static site build'
+    required: false
+    default: './build'
+  dest_dir:
+    description: 'Dir to publish site content'
+    required: false
+    default: '.'
+  branch:
+    description: 'GitHub pages branch'
+    required: false
+    default: 'gh-pages'
+  deploy_key:
+    description: 'Deploy private SSH key secret'
+    required: true
+  author_name:
+    description: 'Commit author name'
+    required: false
+  author_email:
+    description: 'Commit author email'
+    required: false
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
