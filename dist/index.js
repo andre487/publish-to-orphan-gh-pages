@@ -1614,7 +1614,7 @@ async function main () {
   if (inputs.debug) {
     console.log('Inputs:', JSON.stringify(inputs))
     console.log('Process argv:', JSON.stringify(process.argv))
-    console.log('Process env:', JSON.stringify(process.env))
+    console.log('Process env vars:', JSON.stringify(Object.keys(process.env).sort()))
   }
 
   const keyFile = prepareDeployKey(inputs.deployKey)
@@ -1633,9 +1633,6 @@ function getInputs () {
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),
     debug: Boolean(debugVal) && debugVal !== 'false'
   }
-
-  // TODO: remove and regenerate keys
-  console.log(inputs.deployKey)
 
   const { authorEmail } = inputs
   if (!/^.+@.+$/.test(authorEmail)) {
