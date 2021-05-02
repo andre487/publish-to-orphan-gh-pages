@@ -9,8 +9,9 @@ exports.getenv = function (name, defValue) {
 }
 
 exports.prepareDeployKey = function (deployPrivateKey, deployPublicKey) {
-  const privateKeyFile = tempFile() + '_id_rsa'
-  const publicKeyFile = tempFile() + '_id_rsa.pub'
+  const keyFileBase = tempFile()
+  const privateKeyFile = keyFileBase + '_id_rsa'
+  const publicKeyFile = keyFileBase + '_id_rsa.pub'
 
   fs.writeFileSync(privateKeyFile, deployPrivateKey)
   fs.chmodSync(privateKeyFile, 0o600)
