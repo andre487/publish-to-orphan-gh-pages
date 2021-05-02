@@ -12,7 +12,7 @@ Inputs:
   * `deploy_key` – Secret with deploy SSH private key for the repository. **Required**
   * `author_name` – Name of commit author. **Default:** `$GITHUB_ACTOR`
   * `author_email` – Email of commit author. **Default:** `$GITHUB_ACTOR@users.noreply.github.com`
-  * `important_files` – Paths of files that should not be removed when creating new site version. **Default:** `['CNAME']`
+  * `important_files` – Paths of files that should not be removed when creating new site version. JSON array string. **Default:** `["CNAME"]`
   * `debug` – Log debug messages. **Default:** `false`
 
 ```yaml
@@ -36,9 +36,7 @@ jobs:
           dest_dir: .
           branch: gh-pages
           deploy_key: ${{ secrets.REPO_DEPLOY_KEY }}
-          important_files:
-            - CNAME
-            - custom.html
+          important_files: '["CNAME", "custom-file.html"]'
           debug: false
 ```
 
