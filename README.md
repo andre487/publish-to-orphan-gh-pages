@@ -37,7 +37,7 @@ jobs:
       - name: Build site (replace this step to your own build logic)
         run: npm run build -- --dest-dir ./build
       - name: Publish content to GitHub Pages
-        uses: andre487/publish-to-orphan-gh-pages@v1.0.0
+        uses: andre487/publish-to-orphan-gh-pages@v1.0.1
         with:
           src_dir: ./build
           dest_dir: .
