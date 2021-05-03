@@ -25,7 +25,7 @@ module.exports = async function (inputs, keyFile) {
 function prepareCtx (inputs, keyFile) {
   const ctx = Object.assign({}, inputs)
 
-  ctx.env = prepareEnv(keyFile)
+  ctx.env = prepareEnv(keyFile, inputs.debug)
   ctx.gitSha = getenv('GITHUB_SHA', 'unknown')
 
   ctx.gitHubHost = new URL(getenv('GITHUB_SERVER_URL', 'https://github.com')).host
@@ -41,16 +41,17 @@ function prepareCtx (inputs, keyFile) {
   }
   ctx.importantFiles = importantFiles.map(x => path.resolve(x))
 
-  const executor = new Executor(process.cwd(), ctx.env)
+  const executor = new Executor(process.cwd(), ctx.env, ctx.debug)
   ctx.exec = executor.exec.bind(executor)
 
   return ctx
 }
 
-function prepareEnv (keyFile) {
+function prepareEnv (keyFile, debug) {
+  const vArg = debug ? '-v' : ''
   return {
     ...process.env,
-    GIT_SSH_COMMAND: `ssh -v -o StrictHostKeyChecking=accept-new -i ${keyFile}`
+    GIT_SSH_COMMAND: `ssh ${vArg} -o StrictHostKeyChecking=accept-new -i ${keyFile}`
   }
 }
 
@@ -136,9 +137,10 @@ async function copyFsItem (fromPath, toPath) {
 }
 
 class Executor {
-  constructor (cwd, env) {
+  constructor (cwd, env, debug) {
     this.cwd = cwd
     this.env = env
+    this.debug = debug
   }
 
   exec (cmd, ...args) {
@@ -159,7 +161,13 @@ class Executor {
         if (code) {
           return reject(new Error(`Command failed with status ${code}: ${cmd} ${args.join(' ')}`))
         }
-        resolve(out.join(''))
+
+        const cmdResult = out.join('')
+        if (this.debug) {
+          console.log('Command result:\n', cmdResult)
+        }
+
+        resolve(cmdResult)
       })
     })
   }
