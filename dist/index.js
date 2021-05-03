@@ -48,15 +48,6 @@ function prepareEnv (keyFile) {
 
 module.exports = async function (inputs, keyFiles) {
   const env = prepareEnv(keyFiles)
-  console.log(await exec(
-    env, 'ssh-keygen', '-l', '-v',
-    '-f', keyFiles.private
-  ))
-  console.log(await exec(
-    env, 'ssh-keygen', '-l', '-v',
-    '-f', keyFiles.public
-  ))
-
   const { branch, srcDir, destDir, debug, authorName, authorEmail, ...rest } = inputs
 
   const gitSha = getenv('GITHUB_SHA', 'unknown')
@@ -1506,17 +1497,17 @@ exports.prepareDeployKey = function (deployPrivateKey, deployPublicKey) {
   const privateKeyFile = keyFileBase + '_id_rsa'
   const publicKeyFile = keyFileBase + '_id_rsa.pub'
 
-  console.log('Private key file:', privateKeyFile)
-  console.log('Public key file:', publicKeyFile)
+  console.log('Private key header:', deployPublicKey.substring(0, deployPrivateKey.indexOf('\n')))
+  console.log('Public key:', deployPublicKey)
 
   fs.writeFileSync(privateKeyFile, deployPrivateKey)
   fs.chmodSync(privateKeyFile, 0o600)
-  fs.writeFileSync(publicKeyFile, deployPublicKey)
-  fs.chmodSync(publicKeyFile, 0o600)
+  // fs.writeFileSync(publicKeyFile, deployPublicKey)
+  // fs.chmodSync(publicKeyFile, 0o600)
 
   process.on('exit', () => {
     fs.unlinkSync(privateKeyFile)
-    fs.unlinkSync(publicKeyFile)
+    // fs.unlinkSync(publicKeyFile)
     console.log('Deploy key files have been removed')
   })
 
