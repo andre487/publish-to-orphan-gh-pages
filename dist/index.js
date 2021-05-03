@@ -76,7 +76,7 @@ async function prepareToPublish (ctx) {
   console.log('Checking out to branch', ctx.branch)
   await ctx.exec('git', 'checkout', '--force', ctx.branch)
 
-  ctx.importantBackups = backupTree(ctx.importantFiles, ctx.debug)
+  ctx.importantBackups = await backupTree(ctx.importantFiles, ctx.debug)
 }
 
 async function eraseOldRelease (ctx) {
