@@ -103,3 +103,7 @@ Or run shortcut:
 ```shell
   $ npm run check-commit
 ```
+
+## Links
+
+Other action for GitHub pages: [peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages)
