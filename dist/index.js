@@ -100,7 +100,7 @@ async function publishNewRelease (ctx) {
 
   console.log('Commit new release files')
   const msg = `New GitHub pages version\n\nSource commit: ${ctx.gitSha}`
-  await ctx.exec('git', 'commit', '--all', '--message', msg)
+  await ctx.exec('git', 'commit', '--all', '--allow-empty', '--message', msg)
 
   console.log('Add push remote')
   const remoteUrl = `git@${ctx.gitHubHost}:${ctx.repoCode}.git`
