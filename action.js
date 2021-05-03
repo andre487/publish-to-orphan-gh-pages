@@ -42,15 +42,6 @@ function prepareEnv (keyFile) {
 
 module.exports = async function (inputs, keyFiles) {
   const env = prepareEnv(keyFiles)
-  console.log(await exec(
-    env, 'ssh-keygen', '-l', '-v',
-    '-f', keyFiles.private
-  ))
-  console.log(await exec(
-    env, 'ssh-keygen', '-l', '-v',
-    '-f', keyFiles.public
-  ))
-
   const { branch, srcDir, destDir, debug, authorName, authorEmail, ...rest } = inputs
 
   const gitSha = getenv('GITHUB_SHA', 'unknown')
