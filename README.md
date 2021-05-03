@@ -1,8 +1,7 @@
-# Publish to orphan GitHub pages branch
+# Action for publishing static site to orphan GitHub pages branch
 
-GitHub action for publish generated static content to orphan GitHub pages branch
+GitHub action for publish generated static content to orphan (no common history with main branch) GitHub pages branch
 
-It means that contents of the branch is completely different from the main branch and doesn't have common history with it.
 GitHub pages branch in this scheme contains only static site build content, and some system GitHub files like 'CNAME'
 (special file for custom domain)
 
@@ -98,4 +97,9 @@ Before commit:
 ```shell
   $ npm run build
   $ git commit dist
+```
+
+Or run shortcut:
+```shell
+  $ npm run check-commit
 ```

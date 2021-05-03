@@ -151,8 +151,8 @@ class Executor {
   }
 
   exec (cmd, ...args) {
-    console.log('+', cmd, ...args)
     return new Promise((resolve, reject) => {
+      console.log('+', cmd, ...args)
       const proc = spawn(cmd, args, {
         cwd: this.cwd,
         env: this.env
@@ -1663,7 +1663,7 @@ async function main () {
 }
 
 function getInputs () {
-  const githubActor = getenv('GITHUB_ACTOR', getenv('USER', 'nobody'))
+  const githubActor = getenv('GITHUB_ACTOR') || thr(new Error('No GITHUB_ACTOR env var'))
   const debugVal = core.getInput('debug')
 
   // noinspection SpellCheckingInspection
@@ -1680,7 +1680,7 @@ function getInputs () {
 
   const { authorEmail } = inputs
   if (!/^.+@.+$/.test(authorEmail)) {
-    throw new Error(`Email ${authorEmail} has an incorrect format`)
+    throw new Error(`Email "${authorEmail}" has an incorrect format`)
   }
 
   return inputs

@@ -145,8 +145,8 @@ class Executor {
   }
 
   exec (cmd, ...args) {
-    console.log('+', cmd, ...args)
     return new Promise((resolve, reject) => {
+      console.log('+', cmd, ...args)
       const proc = spawn(cmd, args, {
         cwd: this.cwd,
         env: this.env
