@@ -18,69 +18,100 @@ const copyDir = promisify(copyDirCb)
 
 const defaultImportantFiles = ['CNAME']
 
-function exec (env, cmd, ...args) {
-  console.log('+', cmd, ...args)
+module.exports = async function (inputs, keyFile) {
+  const ctx = prepareCtx(inputs, keyFile)
 
-  return new Promise((resolve, reject) => {
-    const proc = spawn(cmd, args, { env })
-    proc.stderr.pipe(process.stderr)
+  await prepareToPublish(ctx)
+  await eraseOldRelease(ctx)
+  await publishNewRelease(ctx)
 
-    const out = []
-    proc.stdout.on('data', data => {
-      out.push(data)
-    })
+  console.log('Success!', '🏅')
+}
 
-    proc.on('exit', code => {
-      if (code) {
-        return reject(new Error(`Command failed with status ${code}: ${cmd} ${args.join(' ')}`))
-      }
-      resolve(out.join(''))
-    })
-  })
+function prepareCtx (inputs, keyFile) {
+  const ctx = Object.assign({}, inputs)
+
+  ctx.env = prepareEnv(keyFile)
+  ctx.gitSha = getenv('GITHUB_SHA', 'unknown')
+
+  ctx.gitHubHost = new URL(getenv('GITHUB_SERVER_URL', 'https://github.com')).host
+  ctx.repoCode = getenv('GITHUB_REPOSITORY') || thr(new Error('There is no GITHUB_REPOSITORY env var'))
+
+  ctx.srcDirAbs = path.resolve(ctx.srcDir)
+  ctx.destDirAbs = path.resolve(ctx.destDir)
+  ctx.backupDir = tempDir.sync()
+
+  let importantFiles = ctx.importantFiles
+  if (!importantFiles || !importantFiles.length) {
+    importantFiles = defaultImportantFiles
+  }
+  ctx.importantFiles = importantFiles.map(x => path.resolve(x))
+
+  const executor = new Executor(process.cwd(), ctx.env)
+  ctx.exec = executor.exec.bind(executor)
+
+  return ctx
 }
 
 function prepareEnv (keyFile) {
   return {
     ...process.env,
-    GIT_SSH_COMMAND: `ssh -v -o StrictHostKeyChecking=accept-new -i ${keyFile.private}`
+    GIT_SSH_COMMAND: `ssh -v -o StrictHostKeyChecking=accept-new -i ${keyFile}`
   }
 }
 
-module.exports = async function (inputs, keyFiles) {
-  const env = prepareEnv(keyFiles)
-  const { branch, srcDir, destDir, debug, authorName, authorEmail, ...rest } = inputs
-
-  const gitSha = getenv('GITHUB_SHA', 'unknown')
-
-  const gitHubHost = new URL(getenv('GITHUB_SERVER_URL', 'https://github.com')).host
-  const repoCode = getenv('GITHUB_REPOSITORY') || thr(new Error('There is no GITHUB_REPOSITORY env var'))
-
-  const srcDirAbs = path.resolve(srcDir)
-  const destDirAbs = path.resolve(destDir)
-  const backupDir = tempDir.sync()
-
-  let importantFiles = rest.importantFiles
-  if (!importantFiles || !importantFiles.length) {
-    importantFiles = defaultImportantFiles
-  }
-  importantFiles = importantFiles.map(x => path.resolve(x))
-
-  const importantBackups = {}
-
+async function prepareToPublish (ctx) {
   console.log('Setup commit author')
-  await exec(env, 'git', 'config', 'user.email', authorEmail)
-  await exec(env, 'git', 'config', 'user.name', authorName)
+  await ctx.exec('git', 'config', 'user.email', ctx.authorEmail)
+  await ctx.exec('git', 'config', 'user.name', ctx.authorName)
 
   console.log('Create copy of site content')
-  await copyDir(srcDirAbs, backupDir)
+  // noinspection JSCheckFunctionSignatures
+  await copyDir(ctx.srcDirAbs, ctx.backupDir)
 
-  console.log('Fetching GH pages branch', branch)
-  await exec(env, 'git', 'fetch', 'origin', branch)
+  console.log('Fetching GH pages branch', ctx.branch)
+  await ctx.exec('git', 'fetch', 'origin', ctx.branch)
 
-  console.log('Checking out to branch', branch)
-  await exec(env, 'git', 'checkout', '-f', branch)
+  console.log('Checking out to branch', ctx.branch)
+  await ctx.exec('git', 'checkout', '--force', ctx.branch)
 
+  ctx.importantBackups = backupTree(ctx.importantFiles, ctx.debug)
+}
+
+async function eraseOldRelease (ctx) {
+  console.log('Removing previous release content', ctx.branch)
+  await ctx.exec('git', 'rm', '-rf', '*')
+}
+
+async function publishNewRelease (ctx) {
+  console.log('Copy new release to working dir')
+  // noinspection JSCheckFunctionSignatures
+  await copyDir(ctx.backupDir, ctx.destDirAbs)
+
+  console.log('Copy important files to working dir')
+  for (const [filePath, backupPath] of Object.entries(ctx.importantBackups)) {
+    await copyFsItem(backupPath, filePath)
+  }
+
+  console.log('Commit new release files')
+  await ctx.exec('git', 'add', '--all')
+
+  console.log('Commit new release files')
+  const msg = `New GitHub pages version\n\nSource commit: ${ctx.gitSha}`
+  await ctx.exec('git', 'commit', '--all', '--message', msg)
+
+  console.log('Add push remote')
+  const remoteUrl = `git@${ctx.gitHubHost}:${ctx.repoCode}.git`
+  await ctx.exec('git', 'remote', 'add', 'dest-push-remote', remoteUrl)
+
+  console.log('Pushing new version to branch', ctx.branch)
+  await ctx.exec('git', 'push', 'dest-push-remote', ctx.branch)
+}
+
+async function backupTree (importantFiles, debug) {
   console.log('Create copy of important files')
+
+  const importantBackups = {}
   for (const filePath of importantFiles) {
     if (!fs.existsSync(filePath)) {
       console.error(`File not found: ${filePath}`)
@@ -88,14 +119,7 @@ module.exports = async function (inputs, keyFiles) {
     }
 
     const newPath = tempFile()
-    const stat = fs.statSync(filePath)
-    if (stat.isDirectory()) {
-      await copyDir(filePath, newPath)
-    } else {
-      fs.copyFileSync(filePath, newPath)
-    }
-
-    console.log(`File ${filePath} has been copied to ${newPath}`)
+    await copyFsItem(filePath, newPath)
     importantBackups[filePath] = newPath
   }
 
@@ -103,41 +127,48 @@ module.exports = async function (inputs, keyFiles) {
     console.log('Important file copies map:', JSON.stringify(importantBackups))
   }
 
-  console.log('Removing previous release content', branch)
-  await exec(env, 'git', 'rm', '-rf', '*')
+  return importantBackups
+}
 
-  console.log('Copy new release to working dir')
-  await copyDir(backupDir, destDirAbs)
+async function copyFsItem (fromPath, toPath) {
+  const stat = fs.statSync(fromPath)
+  if (stat.isDirectory()) {
+    // noinspection JSCheckFunctionSignatures
+    await copyDir(fromPath, toPath)
+  } else {
+    fs.copyFileSync(fromPath, toPath)
+  }
+  console.log(`File ${fromPath} has been copied to ${toPath}`)
+}
 
-  console.log('Copy important files to working dir')
-  for (const [filePath, backupPath] of Object.entries(importantBackups)) {
-    const stat = fs.statSync(backupPath)
-    if (stat.isDirectory()) {
-      await copyDir(backupPath, filePath)
-    } else {
-      fs.copyFileSync(backupPath, filePath)
-    }
+class Executor {
+  constructor (cwd, env) {
+    this.cwd = cwd
+    this.env = env
   }
 
-  console.log('Commit new release files')
-  await exec(env, 'git', 'add', '--all')
+  exec (cmd, ...args) {
+    console.log('+', cmd, ...args)
+    return new Promise((resolve, reject) => {
+      const proc = spawn(cmd, args, {
+        cwd: this.cwd,
+        env: this.env
+      })
+      proc.stderr.pipe(process.stderr)
 
-  console.log('Commit new release files')
-  await exec(
-    env,
-    'git', 'commit',
-    '--all', '--no-verify',
-    '--message', `New GitHub pages version\n\nSource commit: ${gitSha}`
-  )
+      const out = []
+      proc.stdout.on('data', data => {
+        out.push(data)
+      })
 
-  console.log('Add push remote')
-  const remoteUrl = `git@${gitHubHost}:${repoCode}.git`
-  await exec(env, 'git', 'remote', 'add', 'dest-push-remote', remoteUrl)
-
-  console.log('Pushing new version to branch', branch)
-  await exec(env, 'git', 'push', 'dest-push-remote', branch)
-
-  console.log('Success!', '🏅')
+      proc.on('exit', code => {
+        if (code) {
+          return reject(new Error(`Command failed with status ${code}: ${cmd} ${args.join(' ')}`))
+        }
+        resolve(out.join(''))
+      })
+    })
+  }
 }
 
 
@@ -1492,29 +1523,17 @@ exports.getenv = function (name, defValue) {
   return defValue
 }
 
-exports.prepareDeployKey = function (deployPrivateKey, deployPublicKey) {
-  const keyFileBase = tempFile()
-  const privateKeyFile = keyFileBase + '_id_rsa'
-  const publicKeyFile = keyFileBase + '_id_rsa.pub'
-
-  console.log('Private key header:', deployPublicKey.substring(0, deployPrivateKey.indexOf('\n')))
-  console.log('Public key:', deployPublicKey)
-
-  fs.writeFileSync(privateKeyFile, deployPrivateKey)
-  fs.chmodSync(privateKeyFile, 0o600)
-  // fs.writeFileSync(publicKeyFile, deployPublicKey)
-  // fs.chmodSync(publicKeyFile, 0o600)
+exports.prepareDeployKey = function (deployPrivateKey) {
+  const keyFile = tempFile() + '_id_rsa'
+  fs.writeFileSync(keyFile, deployPrivateKey)
+  fs.chmodSync(keyFile, 0o600)
 
   process.on('exit', () => {
-    fs.unlinkSync(privateKeyFile)
-    // fs.unlinkSync(publicKeyFile)
-    console.log('Deploy key files have been removed')
+    fs.unlinkSync(keyFile)
+    console.log('Deploy private key file has been removed')
   })
 
-  return {
-    private: privateKeyFile,
-    public: publicKeyFile
-  }
+  return keyFile
 }
 
 
@@ -1612,8 +1631,6 @@ const thr = __nccwpck_require__(673)
 const action = __nccwpck_require__(582)
 const { getenv, prepareDeployKey } = __nccwpck_require__(962)
 
-const githubActor = getenv('GITHUB_ACTOR')
-
 main().catch(e => {
   console.error(e)
   core.setFailed(e.message)
@@ -1622,24 +1639,24 @@ main().catch(e => {
 
 async function main () {
   const inputs = getInputs()
-
   if (inputs.debug) {
     console.log('Process argv:', JSON.stringify(process.argv))
     console.log('Inputs:', JSON.stringify(inputs))
   }
-
-  const keyFiles = prepareDeployKey(inputs.deployPrivateKey, inputs.deployPublicKey)
-  await action(inputs, keyFiles)
+  const keyFile = prepareDeployKey(inputs.deployPrivateKey)
+  await action(inputs, keyFile)
 }
 
 function getInputs () {
+  const githubActor = getenv('GITHUB_ACTOR', getenv('USER', 'nobody'))
   const debugVal = core.getInput('debug')
+
+  // noinspection SpellCheckingInspection
   const inputs = {
     srcDir: core.getInput('src_dir') || './build',
     destDir: core.getInput('dest_dir') || '.',
     branch: core.getInput('branch') || 'gh-pages',
     deployPrivateKey: core.getInput('deploy_private_key') || thr(new Error('No "deploy_private_key" input')),
-    deployPublicKey: core.getInput('deploy_public_key') || thr(new Error('No "deploy_public_key" input')),
     authorName: core.getInput('author_name') || githubActor,
     authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),

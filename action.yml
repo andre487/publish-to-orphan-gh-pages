@@ -16,9 +16,6 @@ inputs:
   deploy_private_key:
     description: 'Deploy private SSH key secret'
     required: true
-  deploy_public_key:
-    description: 'Deploy public SSH key secret'
-    required: true
   author_name:
     description: 'Commit author name'
     required: false

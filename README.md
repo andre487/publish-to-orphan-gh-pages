@@ -1,6 +1,14 @@
 # Publish to orphan GitHub pages branch
 
-GitHub action for publish generated static content to orphan gh-pages branch
+GitHub action for publish generated static content to orphan GitHub pages branch
+
+It means that contents of the branch is completely different from the main branch and doesn't have common history with it.
+GitHub pages branch in this scheme contains only static site build content, and some system GitHub files like 'CNAME'
+(special file for custom domain)
+
+In publishing process old content of the site having been erased completely (with some reservations)
+and replaced with a new version, except files and directories that passed in action inputs
+
 
 ## Usage
 
@@ -10,7 +18,6 @@ Inputs:
   * `dest_dir` – The directory to put content in GitHub pages branch. **Default:** `.`
   * `branch` – The GitHub pages branch. **Default:** `gh-pages`
   * `deploy_private_key` – Secret with deploy SSH private key for the repository. **Required**
-  * `deploy_public_key` – Secret with deploy SSH public key for the repository. **Required**
   * `author_name` – Name of commit author. **Default:** `$GITHUB_ACTOR`
   * `author_email` – Email of commit author. **Default:** `$GITHUB_ACTOR@users.noreply.github.com`
   * `important_files` – Files outside the build that should be in the result. JSON array string. **Default:** `["CNAME"]`
@@ -37,10 +44,10 @@ jobs:
           dest_dir: .
           branch: gh-pages
           deploy_private_key: ${{ secrets.REPO_DEPLOY_PRIVATE_KEY }}
-          deploy_public_key: ${{ secrets.REPO_DEPLOY_PUBLIC_KEY }}
           important_files: '["CNAME", "custom-file.html"]'
           debug: false
 ```
+
 
 ## Deploy key
 
@@ -55,16 +62,19 @@ Generate SSH key pair:
   $ ssh-keygen -f repo_deploy_id_rsa
 ```
 
+It's recommended to **generate keys on an Ubuntu Linux** machine for avoiding some OpenSSH compatibility issues like
+[this](https://stackoverflow.com/questions/67361592/git-push-with-ssh-remote-error-load-key-path-to-file-id-rsa-invalid-format)
+
 Do not set passphrase for this key type. After this step there will be two files in the `secret-dir`:
 
   * `repo_deploy_id_rsa` – private key
   * `repo_deploy_id_rsa.pub` – public key
 
-Then add public key file's content to repository deploy keys
+Then add the public key file's content to repository deploy keys
 by [manual](https://docs.github.com/en/developers/overview/managing-deploy-keys#deploy-keys). Grant write access for
 this key
 
-Add private and public key files contents to repository secrets
+Add the private key file's content to repository secrets
 by [manual](https://docs.github.com/en/actions/reference/encrypted-secrets)
 
 

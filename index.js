@@ -3,8 +3,6 @@ const thr = require('throw')
 const action = require('./action')
 const { getenv, prepareDeployKey } = require('./util')
 
-const githubActor = getenv('GITHUB_ACTOR')
-
 main().catch(e => {
   console.error(e)
   core.setFailed(e.message)
@@ -13,24 +11,24 @@ main().catch(e => {
 
 async function main () {
   const inputs = getInputs()
-
   if (inputs.debug) {
     console.log('Process argv:', JSON.stringify(process.argv))
     console.log('Inputs:', JSON.stringify(inputs))
   }
-
-  const keyFiles = prepareDeployKey(inputs.deployPrivateKey, inputs.deployPublicKey)
-  await action(inputs, keyFiles)
+  const keyFile = prepareDeployKey(inputs.deployPrivateKey)
+  await action(inputs, keyFile)
 }
 
 function getInputs () {
+  const githubActor = getenv('GITHUB_ACTOR', getenv('USER', 'nobody'))
   const debugVal = core.getInput('debug')
+
+  // noinspection SpellCheckingInspection
   const inputs = {
     srcDir: core.getInput('src_dir') || './build',
     destDir: core.getInput('dest_dir') || '.',
     branch: core.getInput('branch') || 'gh-pages',
     deployPrivateKey: core.getInput('deploy_private_key') || thr(new Error('No "deploy_private_key" input')),
-    deployPublicKey: core.getInput('deploy_public_key') || thr(new Error('No "deploy_public_key" input')),
     authorName: core.getInput('author_name') || githubActor,
     authorEmail: core.getInput('author_email') || `${githubActor}@users.noreply.github.com`,
     importantFiles: JSON.parse(core.getInput('important_files') || '[]'),
