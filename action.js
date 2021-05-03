@@ -76,6 +76,7 @@ async function prepareToPublish (ctx) {
 async function eraseOldRelease (ctx) {
   console.log('Removing previous release content', ctx.branch)
   await ctx.exec('git', 'rm', '-rf', '*')
+  await ctx.exec('git', 'clean', '-fdx')
 }
 
 async function publishNewRelease (ctx) {
@@ -164,7 +165,13 @@ class Executor {
 
         const cmdResult = out.join('')
         if (this.debug) {
-          console.log('Command result:\n', cmdResult)
+          let cmdLogLine = cmdResult.trim()
+          if (cmdLogLine) {
+            if (cmdLogLine > 1024) {
+              cmdLogLine = cmdLogLine.substring(0, 1024) + '…'
+            }
+            console.log('Command result:\n', cmdLogLine)
+          }
         }
 
         resolve(cmdResult)
