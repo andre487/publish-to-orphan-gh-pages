@@ -1,6 +1,6 @@
 {
   "name": "publish-to-orphan-gh-pages",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "GitHub action for publish repository folder with static content to orphan GitHub pages branch",
   "main": "index.js",
   "scripts": {
