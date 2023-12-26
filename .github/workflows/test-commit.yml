@@ -22,6 +22,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+    - run: node --eval='var os = require("os"); console.log(os.tmpdir())'
     - run: npm ci
     - run: npm run build
     - run: npm test
