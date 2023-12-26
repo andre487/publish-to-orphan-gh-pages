@@ -6,6 +6,9 @@ cd "$(dirname "$0")/.."
 # PARAMS
 #
 export PROJECT_DIR="$PWD"
+if [[ -n "${RUNNER_TEMP:-}" ]]; then
+  export TMPDIR="$RUNNER_TEMP"
+fi
 
 get_engine_version() {
   grep -Eo "\"$1\"\s*:\s*\".+\"" package.json | grep -Eo '[0-9]+' | head -n1
