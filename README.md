@@ -58,7 +58,7 @@ Generate SSH key pair:
 
 ```shell
   $ cd secret-dir
-  $ ssh-keygen -f repo_deploy_id_rsa
+  $ ssh-keygen -m PKCS8 -b 4096 -t rsa -f ./repo_deploy_id_rsa
 ```
 
 It's recommended to **generate keys on an Ubuntu Linux** machine for avoiding some OpenSSH compatibility issues like
