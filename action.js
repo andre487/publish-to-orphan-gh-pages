@@ -1,12 +1,12 @@
 const fs = require('fs')
 const { spawn } = require('child_process')
+const crypro = require('crypto')
 const path = require('path')
 const { promisify } = require('util')
 const copyDirCb = require('copy-dir')
-const tempDir = require('tempdir')
-const tempFile = require('tempfile')
 const thr = require('throw')
 const { getenv } = require('./util')
+const os = require('os')
 
 const copyDir = promisify(copyDirCb)
 
@@ -23,7 +23,7 @@ module.exports = async function (inputs, keyFile) {
 }
 
 function prepareCtx (inputs, keyFile) {
-  const ctx = Object.assign({}, inputs)
+  const ctx = Object.assign(Object.create(null), inputs)
 
   ctx.env = prepareEnv(keyFile, inputs.debug)
   ctx.gitSha = getenv('GITHUB_SHA', 'unknown')
@@ -33,8 +33,9 @@ function prepareCtx (inputs, keyFile) {
 
   ctx.srcDirAbs = path.resolve(ctx.srcDir)
   ctx.destDirAbs = path.resolve(ctx.destDir)
-  ctx.backupDir = tempDir.sync()
+  ctx.backupDir = fs.mkdtempSync(os.tmpdir())
 
+  /** @type string[] | undefined */
   let importantFiles = ctx.importantFiles
   if (!importantFiles || !importantFiles.length) {
     importantFiles = defaultImportantFiles
@@ -108,13 +109,14 @@ async function backupTree (importantFiles, debug) {
   console.log('Create copy of important files')
 
   const importantBackups = {}
+  const tmpDir = fs.mkdtempSync(os.tmpdir())
   for (const filePath of importantFiles) {
     if (!fs.existsSync(filePath)) {
       console.error(`File not found: ${filePath}`)
       continue
     }
 
-    const newPath = tempFile()
+    const newPath = path.join(tmpDir, crypro.randomUUID() + path.extname(filePath))
     await copyFsItem(filePath, newPath)
     importantBackups[filePath] = newPath
   }

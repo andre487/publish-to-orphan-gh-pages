@@ -1,12 +1,18 @@
 {
   "name": "publish-to-orphan-gh-pages",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "GitHub action for publish repository folder with static content to orphan GitHub pages branch",
   "main": "index.js",
+  "engines": {
+    "node": "^20.0.0",
+    "npm": "^10.2.3"
+  },
   "scripts": {
     "prepare": "husky install",
     "check-commit": "npm run build && npm run fix && git commit .",
-    "test": "eslint .",
+    "test": "npm run lint && npm run test-action",
+    "test-action": "./test/run.sh",
+    "lint": "eslint .",
     "fix": "eslint . --fix",
     "build": "ncc build index.js --license licenses.txt"
   },
@@ -27,17 +33,17 @@
   "dependencies": {
     "@actions/core": "^1.10.1",
     "copy-dir": "^1.3.0",
-    "tempdir": "^2.0.0",
-    "tempfile": "^5.0.0",
     "throw": "^1.1.1"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.1",
+    "chai": "^4.3.10",
     "eslint": "^8.56.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
-    "husky": "^8.0.3"
+    "husky": "^8.0.3",
+    "mocha": "^10.2.0"
   }
 }
