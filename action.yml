@@ -29,5 +29,5 @@ inputs:
     description: 'Log debug messages'
     required: false
 runs:
-  using: 'node12'
+  using: 'node22'
   main: 'dist/index.js'
