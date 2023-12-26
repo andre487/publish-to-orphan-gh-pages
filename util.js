@@ -1,5 +1,6 @@
 const fs = require('fs')
-const tempFile = require('tempfile')
+const os = require('os')
+const path = require('path')
 
 exports.getenv = function (name, defValue) {
   if (name in process.env) {
@@ -9,12 +10,14 @@ exports.getenv = function (name, defValue) {
 }
 
 exports.prepareDeployKey = function (deployPrivateKey) {
-  const keyFile = tempFile() + '_id_rsa'
+  const keyDir = fs.mkdtempSync(os.tmpdir())
+  const keyFile = path.join(keyDir, 'id_rsa')
+
   fs.writeFileSync(keyFile, deployPrivateKey)
   fs.chmodSync(keyFile, 0o600)
 
   process.on('exit', () => {
-    fs.unlinkSync(keyFile)
+    fs.rmSync(keyDir, { recursive: true })
     console.log('Deploy private key file has been removed')
   })
 

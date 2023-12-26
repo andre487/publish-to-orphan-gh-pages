@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -eufo pipefail
+
+mock_git_log_file="${MOCK_GIT_LOG_FILE:-/tmp/commands.log}"
+msg="[$(date +"%FT%T.%N%z")]: [$PWD]: $*"
+echo "$msg" >>"$mock_git_log_file"
+
+if [[ "${MOCK_GIT_ECHO:-}" == 1 ]]; then
+  echo "[git]: $msg" >/dev/stderr
+fi
