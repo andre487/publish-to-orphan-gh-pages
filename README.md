@@ -1,5 +1,7 @@
 # Action for publishing static site to orphan GitHub pages branch
 
+[![Test commit](https://github.com/andre487/publish-to-orphan-gh-pages/actions/workflows/test-commit.yml/badge.svg)](https://github.com/andre487/publish-to-orphan-gh-pages/actions/workflows/test-commit.yml)
+
 GitHub action for publish generated static content to orphan (no common history with main branch) GitHub pages branch
 
 GitHub pages branch in this scheme contains only static site build content, and some system GitHub files like 'CNAME'
