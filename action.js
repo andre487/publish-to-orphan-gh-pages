@@ -75,9 +75,13 @@ async function prepareToPublish (ctx) {
 }
 
 async function eraseOldRelease (ctx) {
-  console.log('Removing previous release content', ctx.branch)
-  await ctx.exec('git', 'rm', '-rf', '*')
-  await ctx.exec('git', 'clean', '-fdx')
+  if (fs.readdirSync('.').length) {
+    console.log('Removing previous release content on branch', ctx.branch)
+    await ctx.exec('git', 'rm', '-rf', '*')
+    await ctx.exec('git', 'clean', '-fdx')
+  } else {
+    console.log('Work copy is clean on branch', ctx.branch)
+  }
 }
 
 async function publishNewRelease (ctx) {
