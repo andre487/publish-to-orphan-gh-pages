@@ -9,7 +9,8 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "check-commit": "npm run build && npm run fix && git commit .",
+    "check-commit": "npm run build && npm run fix && git add . && git commit",
+    "ci": "npm run check-commit",
     "test": "npm run lint && npm run test-action",
     "test-action": "./test/run.sh",
     "lint": "eslint .",
