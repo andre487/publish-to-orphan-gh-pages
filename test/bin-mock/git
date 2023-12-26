@@ -8,3 +8,7 @@ echo "$msg" >>"$mock_git_log_file"
 if [[ "${MOCK_GIT_ECHO:-}" == 1 ]]; then
   echo "[git]: $msg" >/dev/stderr
 fi
+
+if [[ "${1:-}" == ls-files ]]; then
+  ls
+fi
