@@ -3396,6 +3396,10 @@ main().catch(e => {
 })
 
 async function main () {
+  if (process.env.RUNNER_TEMP) {
+    process.env.TMPDIR = process.env.RUNNER_TEMP
+  }
+
   const inputs = getInputs()
   if (inputs.debug) {
     console.log('Process argv:', JSON.stringify(process.argv))
