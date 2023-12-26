@@ -81,9 +81,9 @@ async function prepareToPublish (ctx) {
 }
 
 async function eraseOldRelease (ctx) {
-  console.log('!!!!!!!!!!!', await ctx.exec('git', 'ls-files', '.'))
+  const gitFiles = await ctx.exec('git', 'ls-files')
 
-  if (fs.readdirSync('.').length) {
+  if (gitFiles.trim()) {
     console.log('Removing previous release content on branch', ctx.branch)
     await ctx.exec('git', 'rm', '-rf', '*')
     await ctx.exec('git', 'clean', '-fdx')
